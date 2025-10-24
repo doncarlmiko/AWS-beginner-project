@@ -1,0 +1,102 @@
+# "org" ensures this Service is used with the correct Serverless Framework License Key.
+org: donserver35
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: donpython
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: us-east-2
+  role: arn:aws:iam::272898481162:role/serverless-app-role
+  environment: 
+    DYNAMO_TABLE: DonProductsTable
+    INVENTORY_TABLE: DonProductInventory
+  # Uncomment to easily set up a custom domain. Read the docs for more details:
+  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
+  # domain: api.example.com
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi:
+          path: /
+          method: get
+  getAllProducts:
+    handler: handler.get_all_products
+    events:
+      - httpApi:
+          path: /products
+          method: get
+          
+  createOneProduct:
+    handler: handler.create_one_product
+    events:
+      - httpApi:
+          path: /products
+          method: post
+  
+  updateProduct:
+    handler: handler.update_product
+    events:
+      - httpApi:
+          path: /update-products
+          method: post        
+          
+  deleteProduct:
+    handler: handler.delete_product
+    events:
+      - httpApi:
+          path: /products
+          method: delete
+          
+  add_stocks_to_product:
+    handler: handler.add_stocks_to_product
+    events:
+      - httpApi:
+          path: /add-stock-products
+          method: post     
+
+resources:
+  Resources:
+    DonPythonTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: DonProductsTable
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: product_id
+            AttributeType: S
+          #- AttributeName: product_name
+          #  AttributeType: S
+          #- AttributeName: brand_name
+          #  AttributeType: S
+          #- AttributeName: price
+          #  AttributeType: N
+          #- AttributeName: quantity
+          #  AttributeType: N
+            
+        KeySchema:
+          - AttributeName: product_id
+            KeyType: HASH
+            
+    DonProductInventory:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: DonProductInventory
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: product_id
+            AttributeType: S
+          #- AttributeName: quantity
+          #  AttributeType: N
+          - AttributeName: datetime
+            AttributeType: S
+          #- AttributeName: remarks
+          #  AttributeType: S
+            
+        KeySchema:
+          - AttributeName: product_id
+            KeyType: HASH
+          - AttributeName: datetime
+            KeyType: RANGE
