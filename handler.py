@@ -10,6 +10,8 @@ from datetime import datetime
 
 from decimal import Decimal
 
+from boto3.dynamodb.conditions import Key
+
 class DecimalEncoder(json.JSONEncoder):
   def default(self, obj):
     if isinstance(obj, Decimal):
@@ -124,3 +126,32 @@ def add_stocks_to_product(event, context):
             }
         })
     }
+
+def get_one_product(event, context):
+    print("Event received:", event) 
+    product_id = 'Don product 89'
+    product = products_table.get_item(Key={"product_id": product_id})
+    product_data = product.get("Item",{})
+    
+    # Get all inventory entries for that product
+    inventory_items = inventory_table.query(KeyConditionExpression=Key("product_id").eq(product_id))
+    inventory_items_result = inventory_items.get("Items", [])
+    
+    total_stocks = sum(item['quantity'] for item in inventory_items_result)
+    
+    # Sort inventory entries by datetime (to get the latest)
+    latest_entry = max(inventory_items_result, key=lambda x: x["datetime"]) if inventory_items_result else None
+    
+    response = {
+        "statusCode": 200,
+        "body": json.dumps({
+            "message": f"product id:{product_data['product_id']}, total stocks ={total_stocks}",
+            "data": {
+                    "product_id": product_data["product_id"],
+                    "datetime": latest_entry["datetime"] if latest_entry else None,
+                    "quantity": total_stocks,
+                }
+        }, cls=DecimalEncoder)
+    }
+
+    return response

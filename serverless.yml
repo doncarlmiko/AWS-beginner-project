@@ -55,7 +55,14 @@ functions:
     events:
       - httpApi:
           path: /add-stock-products
-          method: post     
+          method: post
+          
+  get_one_product:
+    handler: handler.get_one_product
+    events:
+      - httpApi:
+          path: /total-stocks-products
+          method: get
 
 resources:
   Resources:
