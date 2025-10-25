@@ -128,7 +128,6 @@ def add_stocks_to_product(event, context):
     }
 
 def get_one_product(event, context):
-    print("Event received:", event) 
     product_id = 'Don product 89'
     product = products_table.get_item(Key={"product_id": product_id})
     product_data = product.get("Item",{})
